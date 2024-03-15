@@ -28,7 +28,23 @@ namespace APIAvtoMig.Controllers
             _configuration = configuration;
             context = _context;
         }
+        [HttpPost]
+        [Route("resendsms")]
+        public async Task<IActionResult> ResendSms([FromBody] ResendSms model)
+        {
+            var userExists = await _userManager.FindByNameAsync(model.PhoneNumber);
+            if (userExists == null)
+                return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Error", Message = "User not found!" });
 
+            SmsActivate smsActivate = new SmsActivate();
+            smsActivate.PhoneNumber = model.PhoneNumber;
+            smsActivate.Code = RandomModel.GetRandomNumber();
+            smsActivate.DateOfEndSMS = DateTime.Now.AddMinutes(10);
+
+            await context.SmsActivates.AddAsync(smsActivate);
+            await context.SaveChangesAsync();
+            return Ok(new Response { Status = "Success", Message = "Sms has been resended!" });
+        }
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
@@ -60,7 +76,7 @@ namespace APIAvtoMig.Controllers
                         expiration = token.ValidTo
                     });
                 }
-                return StatusCode(403);
+                return StatusCode(StatusCodes.Status403Forbidden, new Response { Status = "Error", Message = "Phone number is not confirmed!" });
             }
             return Unauthorized();
         }
@@ -71,6 +87,10 @@ namespace APIAvtoMig.Controllers
             var user = await _userManager.FindByNameAsync(model.PhoneNumber);
             if (user != null)
             {
+                if (user.PhoneNumberConfirmed)
+                {
+                    return StatusCode(StatusCodes.Status409Conflict, new Response { Status = "Error", Message = "Phone number is already confirmed!" });
+                }
                 var smsActivate = await context.SmsActivates.
                     Where(x=>x.IsUsed == false && x.PhoneNumber == model.PhoneNumber).FirstOrDefaultAsync(x=>x.Code == model.Code);
                 if (smsActivate != null)
@@ -78,10 +98,11 @@ namespace APIAvtoMig.Controllers
                     smsActivate.IsUsed = true;
                     user.PhoneNumberConfirmed = true;
                     await context.SaveChangesAsync();
+                    return Ok(new Response { Status = "Success", Message = "Phone number confirmed successfully!" });
                 }
-                return BadRequest();
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Incorrect code or code has expired!" });
             }
-            return BadRequest();
+            return NotFound();
         }
 
         [HttpPost]
@@ -91,7 +112,6 @@ namespace APIAvtoMig.Controllers
             var userExists = await _userManager.FindByNameAsync(model.PhoneNumber);
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
-
             AspNetUser user = new()
             {
                 Email = model.PhoneNumber,
@@ -112,6 +132,8 @@ namespace APIAvtoMig.Controllers
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
             SmsActivate smsActivate = new SmsActivate();
             smsActivate.PhoneNumber = model.PhoneNumber;
             smsActivate.Code = RandomModel.GetRandomNumber();
@@ -119,10 +141,6 @@ namespace APIAvtoMig.Controllers
 
             await context.SmsActivates.AddAsync(smsActivate);
             await context.SaveChangesAsync();
-
-            if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
-
             return Ok(new Response { Status = "Success", Message = "User created successfully!" });
 
         }

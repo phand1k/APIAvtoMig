@@ -17,9 +17,6 @@ namespace APIAvtoMig.Models
         [JsonIgnore]
         public Organization? Organization { get; set; }
         public ICollection<WashOrder>? WashOrders { get; set; }
-        [Required]
-        [StringLength(11, ErrorMessage = "Номер телефона должно быть равно 11", MinimumLength = 11)]
-        public override string? PhoneNumber { get; set; }
         public AspNetUser()
         {
             WashOrders = new List<WashOrder>();
