@@ -75,7 +75,7 @@ namespace APIAvtoMig.Controllers
                         token = new JwtSecurityTokenHandler().WriteToken(token),
                         expiration = token.ValidTo
                     });
-                }
+                }//
                 return StatusCode(StatusCodes.Status403Forbidden, new Response { Status = "Error", Message = "Phone number is not confirmed!" });
             }
             return Unauthorized();
@@ -100,9 +100,9 @@ namespace APIAvtoMig.Controllers
                     await context.SaveChangesAsync();
                     return Ok(new Response { Status = "Success", Message = "Phone number confirmed successfully!" });
                 }
-                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Incorrect code or code has expired!" });
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "400 bad request", Message = "Incorrect code or code has expired!" });
             }
-            return NotFound();
+            return StatusCode(StatusCodes.Status404NotFound, new Response {Status = "404", Message = "User not found" });
         }
 
         [HttpPost]
@@ -119,29 +119,24 @@ namespace APIAvtoMig.Controllers
                 UserName = model.PhoneNumber,
                 PhoneNumber = model.PhoneNumber
             };
-
-            if (!string.IsNullOrEmpty(model.OrganizationId))
+            var checkOrganizationExists = await context.Organizations.FirstOrDefaultAsync(x=>x.Number == model.OrganizationId);
+            if (checkOrganizationExists != null)
             {
-                var organizationId = await context.Organizations
-                    .Where(x => x.Number == model.OrganizationId)
-                    .Select(x => x.Id)
-                    .FirstOrDefaultAsync();
+                user.OrganizationId = checkOrganizationExists.Id;
+                var result = await _userManager.CreateAsync(user, model.Password);
 
-                user.OrganizationId = organizationId;
+                if (!result.Succeeded)
+                    return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+                SmsActivate smsActivate = new SmsActivate();
+                smsActivate.PhoneNumber = model.PhoneNumber;
+                smsActivate.Code = RandomModel.GetRandomNumber();
+                smsActivate.DateOfEndSMS = DateTime.Now.AddMinutes(10);
+
+                await context.SmsActivates.AddAsync(smsActivate);
+                await context.SaveChangesAsync();
+                return Ok(new Response { Status = "Success", Message = "User created successfully!" });
             }
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
-            SmsActivate smsActivate = new SmsActivate();
-            smsActivate.PhoneNumber = model.PhoneNumber;
-            smsActivate.Code = RandomModel.GetRandomNumber();
-            smsActivate.DateOfEndSMS = DateTime.Now.AddMinutes(10);
-
-            await context.SmsActivates.AddAsync(smsActivate);
-            await context.SaveChangesAsync();
-            return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+            return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Error", Message = "Organization does not exists!" });
 
         }
 

@@ -18,6 +18,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddIdentity<AspNetUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequiredLength = 6; // Минимальная длина пароля
+    options.Password.RequireNonAlphanumeric = false; // Требование к использованию неалфавитных символов
+    options.Password.RequireUppercase = false; // Требование к использованию символов верхнего регистра
+    options.Password.RequireLowercase = true; // Требование к использованию символов нижнего регистра
+    options.Password.RequireDigit = true; // Требование к использованию цифр
+    options.Password.RequiredUniqueChars = 6; // Минимальное количество уникальных символов в пароле
+});
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
