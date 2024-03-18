@@ -35,7 +35,11 @@ namespace APIAvtoMig.Controllers
         {
             return await _carService.GetById(id);
         }
-
+        [HttpGet("ModelCars")]
+        public async Task<IActionResult> GetModels(int id)
+        {
+            return await _modelCarService.GetById(id);
+        }
         [HttpGet("Cars")]
         public async Task<IActionResult> GetCars()
         {

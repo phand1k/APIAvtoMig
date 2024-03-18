@@ -58,9 +58,10 @@ namespace APIAvtoMig.Controllers
         {
             var userName = User.FindFirstValue(ClaimTypes.Name);
 
-
-            var userId = await _context.AspNetUsers.
-                Where(x => x.UserName == userName).Select(x => x.Id).FirstOrDefaultAsync();
+            var userId = await _context.AspNetUsers
+                .Where(x => x.UserName == userName)
+                .Select(x => x.Id)
+                .FirstOrDefaultAsync();
 
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -68,11 +69,24 @@ namespace APIAvtoMig.Controllers
             {
                 return Unauthorized();
             }
-
             var washOrders = await _context.WashOrders
-                .Include(x => x.ModelCar.Car)
-                .Where(x => x.AspNetUserId == user.Id && x.OrganizationId == user.OrganizationId)
-                .ToListAsync();
+    .Include(x => x.ModelCar.Car)
+    .Where(x => x.AspNetUserId == user.Id && x.OrganizationId == user.OrganizationId)
+    .Select(x => new {
+        x.Id,
+        x.CarNumber,
+        Car = new
+        {
+            x.Car.Id,
+            x.Car.Name
+        },
+        ModelCar = new
+        {
+            x.ModelCar.Id,
+            x.ModelCar.Name
+        }
+    })
+    .ToListAsync();
 
             if (washOrders == null)
             {
@@ -81,6 +95,8 @@ namespace APIAvtoMig.Controllers
 
             return Ok(washOrders);
         }
+
+
         [Authorize]
         [HttpGet]
         [Route("ListOf")]

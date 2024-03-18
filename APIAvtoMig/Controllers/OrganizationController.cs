@@ -54,6 +54,22 @@ public class OrganizationController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new Response { Status = "Success", Message = "Organization created successfully!" });
     }
+    [HttpPost]
+    [Route("SendPushNotification")]
+    public async Task<IActionResult> SendPushNotification([FromBody] PushNotificationRequest request)
+    {
+        try
+        {
+            var pushNotificationService = new PushNotificationService();
+            await pushNotificationService.SendPushNotification(request.DeviceToken, request.Title, request.Body);
+
+            return Ok(new { Success = true, Message = "Push notification sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Success = false, Message = ex.Message });
+        }
+    }
 
     [Authorize]
     [HttpGet]

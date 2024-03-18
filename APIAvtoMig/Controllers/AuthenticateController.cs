@@ -68,7 +68,7 @@ namespace APIAvtoMig.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                     }
 
-                    var token = GetToken(authClaims, user.Id);
+                    var token = GetToken(authClaims, user.Id, user.OrganizationId);
 
                     return Ok(new
                     {
@@ -177,11 +177,17 @@ namespace APIAvtoMig.Controllers
         }
 
 
-        private JwtSecurityToken GetToken(List<Claim> authClaims, string userId)
+        private JwtSecurityToken GetToken(List<Claim> authClaims, string userId, int? organizationId)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
             authClaims.Add(new Claim(ClaimTypes.NameIdentifier, userId));
+
+            // Преобразуйте organizationId в строку перед добавлением в Claim
+            if (organizationId.HasValue)
+            {
+                authClaims.Add(new Claim("OrganizationId", organizationId.Value.ToString()));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
@@ -189,9 +195,10 @@ namespace APIAvtoMig.Controllers
                 expires: DateTime.Now.AddHours(2190),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
+            );
 
             return token;
         }
+
     }
 }
