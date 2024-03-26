@@ -70,7 +70,18 @@ public class OrganizationController : ControllerBase
             return StatusCode(500, new { Success = false, Message = ex.Message });
         }
     }
-
+    [HttpGet]
+    [Route("ListOfTypeOfOrganizations")]
+    public async Task<IActionResult> ListOfTypeOfOrganizations()
+    {
+        var list = await _context.TypeOfOrganizations
+    .Select(x => new {
+        x.Id,
+        x.Name
+    })
+    .ToListAsync();
+        return Ok(list);
+    }
     [Authorize]
     [HttpGet]
     [Route("list")]

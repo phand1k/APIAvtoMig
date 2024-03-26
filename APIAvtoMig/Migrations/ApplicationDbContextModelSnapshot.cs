@@ -109,6 +109,9 @@ namespace APIAvtoMig.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -119,7 +122,13 @@ namespace APIAvtoMig.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("nvarchar(12)");
 
+                    b.Property<int?>("TypeOfOrganizationId")
+                        .IsRequired()
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TypeOfOrganizationId");
 
                     b.ToTable("Organizations");
                 });
@@ -149,6 +158,23 @@ namespace APIAvtoMig.Migrations
                     b.ToTable("Subscriptions");
                 });
 
+            modelBuilder.Entity("APIAvtoMig.Models.TypeOfOrganization", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TypeOfOrganizations");
+                });
+
             modelBuilder.Entity("APIAvtoMig.Models.WashOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -165,6 +191,9 @@ namespace APIAvtoMig.Migrations
 
                     b.Property<string>("CarNumber")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateOfCreated")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -429,6 +458,17 @@ namespace APIAvtoMig.Migrations
                     b.Navigation("Car");
                 });
 
+            modelBuilder.Entity("APIAvtoMig.Models.Organization", b =>
+                {
+                    b.HasOne("APIAvtoMig.Models.TypeOfOrganization", "TypeOfOrganization")
+                        .WithMany("Organizations")
+                        .HasForeignKey("TypeOfOrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TypeOfOrganization");
+                });
+
             modelBuilder.Entity("APIAvtoMig.Models.WashOrder", b =>
                 {
                     b.HasOne("APIAvtoMig.Models.AspNetUser", "AspNetUser")
@@ -526,6 +566,11 @@ namespace APIAvtoMig.Migrations
                     b.Navigation("AspNetUsers");
 
                     b.Navigation("WashOrders");
+                });
+
+            modelBuilder.Entity("APIAvtoMig.Models.TypeOfOrganization", b =>
+                {
+                    b.Navigation("Organizations");
                 });
 
             modelBuilder.Entity("APIAvtoMig.Models.AspNetUser", b =>

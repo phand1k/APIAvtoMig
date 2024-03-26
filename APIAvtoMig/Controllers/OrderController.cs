@@ -28,7 +28,7 @@ namespace APIAvtoMig.Controllers
             .Where(x => x.CarNumber == order.CarNumber && x.IsDeleted == false).Where(x=>x.IsOvered == false)
             .FirstOrDefaultAsync();
             if (orderExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Order already exists!" });
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Order already exists!" });
 
 
             var userName = User.FindFirstValue(ClaimTypes.Name);
@@ -46,7 +46,14 @@ namespace APIAvtoMig.Controllers
 
             order.AspNetUserId = userId;
             order.OrganizationId = organizationId;
-
+            if (order.AspNetUserId == null)
+            {
+                return NotFound();
+            }
+            if (order.OrganizationId == null)
+            {
+                return Unauthorized();
+            }
             await _context.WashOrders.AddAsync(order);
             await _context.SaveChangesAsync();
             return Ok(new Response { Status = "Success", Message = "Order created successfully!" });
@@ -70,7 +77,7 @@ namespace APIAvtoMig.Controllers
                 return Unauthorized();
             }
             var washOrders = await _context.WashOrders
-    .Include(x => x.ModelCar.Car)
+    .Include(x => x.ModelCar.Car).Where(x=>x.IsDeleted == false)
     .Where(x => x.AspNetUserId == user.Id && x.OrganizationId == user.OrganizationId)
     .Select(x => new {
         x.Id,

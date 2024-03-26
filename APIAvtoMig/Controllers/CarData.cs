@@ -38,7 +38,17 @@ namespace APIAvtoMig.Controllers
         [HttpGet("ModelCars")]
         public async Task<IActionResult> GetModels(int id)
         {
-            return await _modelCarService.GetById(id);
+            var modelCars = await _context.ModelCars.Include(x => x.Car)
+                .Where(x => x.CarId == id)
+                .Select(x => new {
+                    x.Id,
+                    x.Name})
+                .ToListAsync();
+            if (modelCars == null)
+            {
+                return BadRequest();
+            }
+            return Ok(modelCars);
         }
         [HttpGet("Cars")]
         public async Task<IActionResult> GetCars()

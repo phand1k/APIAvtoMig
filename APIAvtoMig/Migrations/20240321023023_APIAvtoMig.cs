@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace APIAvtoMig.Migrations
 {
     /// <inheritdoc />
-    public partial class APIAVtoMig : Migration
+    public partial class APIAvtoMig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -40,22 +40,6 @@ namespace APIAvtoMig.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Organizations",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Number = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DateOfCreated = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Organizations", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SmsActivates",
                 columns: table => new
                 {
@@ -86,6 +70,19 @@ namespace APIAvtoMig.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TypeOfOrganizations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TypeOfOrganizations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -130,6 +127,30 @@ namespace APIAvtoMig.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Organizations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Number = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DateOfCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    TypeOfOrganizationId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Organizations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Organizations_TypeOfOrganizations_TypeOfOrganizationId",
+                        column: x => x.TypeOfOrganizationId,
+                        principalTable: "TypeOfOrganizations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -139,7 +160,6 @@ namespace APIAvtoMig.Migrations
                     LastName = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
                     DateOfCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrganizationId = table.Column<int>(type: "int", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -148,6 +168,7 @@ namespace APIAvtoMig.Migrations
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -259,9 +280,10 @@ namespace APIAvtoMig.Migrations
                     ModelCarId = table.Column<int>(type: "int", nullable: true),
                     CarNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: true),
-                    IsOvered = table.Column<bool>(type: "bit", nullable: true),
+                    DateOfCreated = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrganizationId = table.Column<int>(type: "int", nullable: true),
-                    AspNetUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    AspNetUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IsOvered = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -338,6 +360,11 @@ namespace APIAvtoMig.Migrations
                 column: "CarId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Organizations_TypeOfOrganizationId",
+                table: "Organizations",
+                column: "TypeOfOrganizationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WashOrders_AspNetUserId",
                 table: "WashOrders",
                 column: "AspNetUserId");
@@ -399,6 +426,9 @@ namespace APIAvtoMig.Migrations
 
             migrationBuilder.DropTable(
                 name: "Cars");
+
+            migrationBuilder.DropTable(
+                name: "TypeOfOrganizations");
         }
     }
 }

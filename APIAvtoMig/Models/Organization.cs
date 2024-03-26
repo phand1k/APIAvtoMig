@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using APIAvtoMig.Auth;
 
@@ -17,6 +18,12 @@ namespace APIAvtoMig.Models
         [StringLength(100, ErrorMessage = " Поле должно содержать в себе 12 символов", MinimumLength = 2)]
         public string? FullName { get; set; }
         public DateTime? DateOfCreated { get; set; } = DateTime.Now;
+        public bool? IsDeleted { get; set; } = false;
+        [ForeignKey("TypeOfOrganizationId")]
+        [Required]
+
+        public int? TypeOfOrganizationId { get; set; }
+        public TypeOfOrganization? TypeOfOrganization { get; set; }
         [JsonIgnore]
         public ICollection<AspNetUser>? AspNetUsers { get; set; }
         public ICollection<WashOrder>? WashOrders { get; set; }
