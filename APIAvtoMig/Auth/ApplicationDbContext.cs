@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using APIAvtoMig.Models;
+using APIAvtoMig.Task.Models;
 
 namespace APIAvtoMig.Auth
 {
@@ -19,6 +20,7 @@ namespace APIAvtoMig.Auth
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<TypeOfOrganization> TypeOfOrganizations { get; set; }
         public DbSet<Service> Services { get; set; }
+        public DbSet<Product> Product { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
