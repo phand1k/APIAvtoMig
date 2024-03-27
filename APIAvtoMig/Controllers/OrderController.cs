@@ -58,6 +58,7 @@ namespace APIAvtoMig.Controllers
             await _context.SaveChangesAsync();
             return Ok(new Response { Status = "Success", Message = "Order created successfully!" });
         }
+        
         [Authorize]
         [HttpGet]
         [Route("WashOrders")]
@@ -112,5 +113,36 @@ namespace APIAvtoMig.Controllers
             var list = await _context.WashOrders.ToListAsync();
             return Ok(list);
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("ListOfUsers")]
+        public async Task<IActionResult> ListOfUsers()
+        {
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+
+            var userId = await _context.AspNetUsers
+                .Where(x => x.UserName == userName)
+                .Select(x => x.Id)
+                .FirstOrDefaultAsync();
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            var list = await _context.AspNetUsers.Where(x=>x.OrganizationId == user.OrganizationId).Select(x => new {
+                x.Id,
+                x.FullName
+            })
+                .ToListAsync();
+            if (list == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "List of users not founded!" });
+            }
+            return Ok(list);
+        }
+
     }
 }

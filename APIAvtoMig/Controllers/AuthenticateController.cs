@@ -53,6 +53,9 @@ namespace APIAvtoMig.Controllers
             bool accountConfirmed = user.PhoneNumberConfirmed;
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
+                int? typeOfOrganizationId = await context.Organizations.
+                    Where(x=>x.Id == user.OrganizationId).Select(x=>x.TypeOfOrganizationId).FirstOrDefaultAsync();
+
                 if (accountConfirmed)
                 {
                     var userRoles = await _userManager.GetRolesAsync(user);
@@ -68,7 +71,7 @@ namespace APIAvtoMig.Controllers
                         authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                     }
 
-                    var token = GetToken(authClaims, user.Id, user.OrganizationId);
+                    var token = GetToken(authClaims, user.Id, user.OrganizationId, typeOfOrganizationId);
 
                     return Ok(new
                     {
@@ -177,7 +180,7 @@ namespace APIAvtoMig.Controllers
         }
 
 
-        private JwtSecurityToken GetToken(List<Claim> authClaims, string userId, int? organizationId)
+        private JwtSecurityToken GetToken(List<Claim> authClaims, string userId, int? organizationId, int? organizationTypeId)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
@@ -187,6 +190,10 @@ namespace APIAvtoMig.Controllers
             if (organizationId.HasValue)
             {
                 authClaims.Add(new Claim("OrganizationId", organizationId.Value.ToString()));
+            }
+            if (organizationTypeId.HasValue)
+            {
+                authClaims.Add(new Claim("OrganizationTypeId", organizationTypeId.Value.ToString()));
             }
 
             var token = new JwtSecurityToken(

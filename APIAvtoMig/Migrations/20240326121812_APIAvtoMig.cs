@@ -271,6 +271,34 @@ namespace APIAvtoMig.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Services",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    AspNetUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    OrganizationId = table.Column<int>(type: "int", nullable: true),
+                    DateOfCreatedService = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Price = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Services", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Services_AspNetUsers_AspNetUserId",
+                        column: x => x.AspNetUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Services_Organizations_OrganizationId",
+                        column: x => x.OrganizationId,
+                        principalTable: "Organizations",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WashOrders",
                 columns: table => new
                 {
@@ -365,6 +393,16 @@ namespace APIAvtoMig.Migrations
                 column: "TypeOfOrganizationId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Services_AspNetUserId",
+                table: "Services",
+                column: "AspNetUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Services_OrganizationId",
+                table: "Services",
+                column: "OrganizationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WashOrders_AspNetUserId",
                 table: "WashOrders",
                 column: "AspNetUserId");
@@ -402,6 +440,9 @@ namespace APIAvtoMig.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Services");
 
             migrationBuilder.DropTable(
                 name: "SmsActivates");

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIAvtoMig.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240321023023_APIAvtoMig")]
+    [Migration("20240326121812_APIAvtoMig")]
     partial class APIAvtoMig
     {
         /// <inheritdoc />
@@ -134,6 +134,41 @@ namespace APIAvtoMig.Migrations
                     b.HasIndex("TypeOfOrganizationId");
 
                     b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("APIAvtoMig.Models.Service", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AspNetUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DateOfCreatedService")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Price")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AspNetUserId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("APIAvtoMig.Models.Subscription", b =>
@@ -472,6 +507,21 @@ namespace APIAvtoMig.Migrations
                     b.Navigation("TypeOfOrganization");
                 });
 
+            modelBuilder.Entity("APIAvtoMig.Models.Service", b =>
+                {
+                    b.HasOne("APIAvtoMig.Models.AspNetUser", "AspNetUser")
+                        .WithMany("Services")
+                        .HasForeignKey("AspNetUserId");
+
+                    b.HasOne("APIAvtoMig.Models.Organization", "Organization")
+                        .WithMany("Services")
+                        .HasForeignKey("OrganizationId");
+
+                    b.Navigation("AspNetUser");
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("APIAvtoMig.Models.WashOrder", b =>
                 {
                     b.HasOne("APIAvtoMig.Models.AspNetUser", "AspNetUser")
@@ -568,6 +618,8 @@ namespace APIAvtoMig.Migrations
                 {
                     b.Navigation("AspNetUsers");
 
+                    b.Navigation("Services");
+
                     b.Navigation("WashOrders");
                 });
 
@@ -578,6 +630,8 @@ namespace APIAvtoMig.Migrations
 
             modelBuilder.Entity("APIAvtoMig.Models.AspNetUser", b =>
                 {
+                    b.Navigation("Services");
+
                     b.Navigation("WashOrders");
                 });
 #pragma warning restore 612, 618

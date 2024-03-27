@@ -18,6 +18,7 @@ namespace APIAvtoMig.Auth
         public DbSet<SmsActivate> SmsActivates { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<TypeOfOrganization> TypeOfOrganizations { get; set; }
+        public DbSet<Service> Services { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

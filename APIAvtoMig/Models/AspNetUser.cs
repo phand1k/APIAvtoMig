@@ -17,9 +17,18 @@ namespace APIAvtoMig.Models
         [JsonIgnore]
         public Organization? Organization { get; set; }
         public ICollection<WashOrder>? WashOrders { get; set; }
+        public ICollection<Service> Services { get; set; }
+        public string FullName
+        {
+            get
+            {
+                return FirstName + " " + LastName;
+            }
+        }
         public AspNetUser()
         {
             WashOrders = new List<WashOrder>();
+            Services = new List<Service>();
         }
     }
 }
