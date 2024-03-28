@@ -20,14 +20,29 @@ namespace APIAvtoMig.Task.Controllers
         [Route("Products")]
         public async Task<IActionResult> Products()
         {
-            var list = await context.Product.ToListAsync();
-            if (list == null)
+            var products = await context.Product.ToListAsync();
+            if (products == null)
             {
                 return BadRequest();
             }
-
-            return Ok(list);
+            return Ok(products);
         }
+        [HttpGet]
+        [Route("GetProductById")]
+        public async Task<IActionResult> GetProductById(Guid? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var product  = await context.Product.FirstOrDefaultAsync(x=>x.Id == id);
+            if (product == null)
+            {
+                return BadRequest();
+            }
+            return Ok(product);
+        }
+
         [HttpPost]
         [Route("CreateProduct")]
         public async Task<IActionResult> CreateProduct([FromBody] Product product)
@@ -42,24 +57,28 @@ namespace APIAvtoMig.Task.Controllers
             await context.SaveChangesAsync();
             return Ok(product);
         }
-        [HttpPatch]
-        [Route("DeleteProduct")]
-        public async Task<IActionResult> DeleteProduct(Guid? id)
+        [HttpGet]
+        [Route("SearchProduct")]
+        public async Task<IActionResult> SearchProduct(string nameProduct)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(nameProduct))
             {
-                return BadRequest();
+                return BadRequest("Не указано название продукта.");
             }
-            var product = await context.Product.
-                Where(x => x.IsDeleted == false).FirstOrDefaultAsync(x => x.Id == id);
-            if (product == null)
+
+            var products = await context.Product
+                .Where(p => p.Name.Contains(nameProduct))
+                .ToListAsync();
+
+            if (products == null || !products.Any())
             {
-                return NotFound();
+                return NotFound("Продукты с указанным названием не найдены.");
             }
-            product.IsDeleted = true;
-            await context.SaveChangesAsync();
-            return Ok();
+
+            return Ok(products);
         }
+
+
         [Route("EditProduct")]
         [HttpPatch]
         public async Task<IActionResult> EditProduct(Guid? id, [FromBody] Product? product)
